@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laddle - Daily Word Ladder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #faf8f5;
+            --text: #1a1a1a;
+            --accent: #2d5a27;
+            --accent-light: #4a8c42;
+            --muted: #8a8580;
+            --card-bg: #ffffff;
+            --border: #e5e2dd;
+            --error: #c44536;
+            --success: #2d5a27;
+            --highlight: #f0ebe4;
+        }
+
+        body {
+            font-family: 'Fraunces', Georgia, serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            line-height: 1.5;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ladder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+
+        .word-row {
+            display: flex;
+            gap: 0.4rem;
+            justify-content: center;
+        }
+
+        .letter-box {
+            width: 52px;
+            height: 58px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            background: var(--card-bg);
+            transition: all 0.15s ease;
+        }
+
+        .letter-box.start, .letter-box.end {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .letter-box.filled {
+            border-color: var(--text);
+            background: var(--highlight);
+        }
+
+        .letter-box.current {
+            border-color: var(--accent-light);
+            box-shadow: 0 0 0 3px rgba(74, 140, 66, 0.2);
+        }
+
+        .letter-box.changed {
+            background: #d4e6d1;
+            border-color: var(--accent);
+        }
+
+        .connector {
+            width: 2px;
+            height: 12px;
+            background: var(--border);
+        }
+
+        .input-section {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 0.4rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .letter-input {
+            width: 52px;
+            height: 58px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: 'DM Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 500;
+            text-align: center;
+            text-transform: uppercase;
+            background: var(--card-bg);
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        .letter-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(74, 140, 66, 0.2);
+        }
+
+        .letter-input.error {
+            border-color: var(--error);
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-4px); }
+            40%, 80% { transform: translateX(4px); }
+        }
+
+        .button-row {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        button {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-light);
+        }
+
+        .btn-secondary {
+            background: var(--highlight);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .message {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            min-height: 2.5rem;
+        }
+
+        .message.error {
+            background: #fdf2f1;
+            color: var(--error);
+        }
+
+        .message.hint {
+            background: var(--highlight);
+            color: var(--muted);
+        }
+
+        .stats {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        /* Win screen */
+        .win-screen {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+
+        .win-screen.show {
+            display: block;
+        }
+
+        .win-screen h2 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .win-screen .score {
+            font-family: 'DM Mono', monospace;
+            font-size: 3rem;
+            font-weight: 500;
+            color: var(--text);
+            margin: 1rem 0;
+        }
+
+        .win-screen .score-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .win-screen .par {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .share-text {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            background: var(--highlight);
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            white-space: pre-line;
+            text-align: left;
+        }
+
+        .countdown {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 1.5rem;
+        }
+
+        /* How to play modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 1rem;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            margin-bottom: 1rem;
+        }
+
+        .modal p {
+            margin-bottom: 1rem;
+            color: var(--muted);
+        }
+
+        .modal .example {
+            display: flex;
+            gap: 0.3rem;
+            justify-content: center;
+            margin: 0.75rem 0;
+        }
+
+        .modal .mini-box {
+            width: 36px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Mono', monospace;
+            font-size: 1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .modal .mini-box.highlight {
+            background: #d4e6d1;
+            border-color: var(--accent);
+        }
+
+        .modal .close-btn {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .help-btn {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            font-family: 'Fraunces', serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--muted);
+        }
+
+        .help-btn:hover {
+            background: var(--highlight);
+        }
+
+        /* Responsive */
+        @media (max-width: 400px) {
+            .letter-box, .letter-input {
+                width: 46px;
+                height: 52px;
+                font-size: 1.3rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="help-btn" onclick="showHelp()">?</button>
+    
+    <header>
+        <h1>Laddle</h1>
+        <p class="subtitle">Daily Word Ladder</p>
+    </header>
+
+    <div class="game-container">
+        <div class="message hint" id="message">Change one letter at a time</div>
+        
+        <div class="ladder" id="ladder">
+            <!-- Words will be inserted here -->
+        </div>
+
+        <div class="input-section" id="inputSection">
+            <div class="input-row">
+                <input type="text" maxlength="1" class="letter-input" data-index="0" autocomplete="off" autocapitalize="characters">
+                <input type="text" maxlength="1" class="letter-input" data-index="1" autocomplete="off" autocapitalize="characters">
+                <input type="text" maxlength="1" class="letter-input" data-index="2" autocomplete="off" autocapitalize="characters">
+                <input type="text" maxlength="1" class="letter-input" data-index="3" autocomplete="off" autocapitalize="characters">
+            </div>
+            <div class="button-row">
+                <button class="btn-secondary" onclick="clearInput()">Clear</button>
+                <button class="btn-primary" onclick="submitWord()">Submit</button>
+            </div>
+        </div>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="win-screen" id="winScreen">
+            <h2>Brilliant!</h2>
+            <p class="score-label">Steps taken</p>
+            <div class="score" id="finalScore">0</div>
+            <p class="par" id="parInfo"></p>
+            <div class="share-text" id="shareText"></div>
+            <button class="btn-primary" onclick="copyShare()">Share</button>
+            <p class="countdown" id="countdown"></p>
+        </div>
+    </div>
+
+    <!-- How to play modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h2>How to Play</h2>
+            <p>Transform the <strong>start word</strong> into the <strong>end word</strong>, one letter at a time.</p>
+            <p>Each step must be a valid English word, and you can only change <strong>one letter</strong> per step.</p>
+            
+            <p style="margin-top: 1.5rem; margin-bottom: 0.5rem;"><strong>Example:</strong> COLD → WARM</p>
+            <div class="example">
+                <span class="mini-box">C</span>
+                <span class="mini-box">O</span>
+                <span class="mini-box">L</span>
+                <span class="mini-box">D</span>
+            </div>
+            <div class="example">
+                <span class="mini-box">C</span>
+                <span class="mini-box">O</span>
+                <span class="mini-box highlight">R</span>
+                <span class="mini-box">D</span>
+            </div>
+            <div class="example">
+                <span class="mini-box highlight">W</span>
+                <span class="mini-box">O</span>
+                <span class="mini-box">R</span>
+                <span class="mini-box">D</span>
+            </div>
+            <div class="example">
+                <span class="mini-box">W</span>
+                <span class="mini-box">O</span>
+                <span class="mini-box">R</span>
+                <span class="mini-box highlight">M</span>
+            </div>
+            <div class="example">
+                <span class="mini-box">W</span>
+                <span class="mini-box highlight">A</span>
+                <span class="mini-box">R</span>
+                <span class="mini-box">M</span>
+            </div>
+            
+            <p style="margin-top: 1.5rem;">Try to reach the end word in as few steps as possible!</p>
+            <button class="btn-primary close-btn" onclick="hideHelp()">Got it!</button>
+        </div>
+    </div>
+
+    <script>
+        // Word list - common 4-letter words
+        const WORDS = new Set([
+            "able","ache","acid","aged","also","area","army","away","baby","back","bake","ball","band","bank","bare","bark","barn","base","bath","bead","beak","beam","bean","bear","beat","been","beer","bell","belt","bend","bent","best","bike","bill","bind","bird","bite","blow","blue","boat","body","boil","bold","bolt","bomb","bond","bone","book","boom","boot","bore","born","boss","both","bowl","bulk","bull","burn","bush","busy","cafe","cage","cake","calf","call","calm","came","camp","cane","cape","card","care","carp","cart","case","cash","cast","cave","cell","chat","chef","chin","chip","chop","cite","city","clad","clam","clan","clap","claw","clay","clip","club","clue","coal","coat","code","coil","coin","cold","cole","colt","comb","come","cone","cook","cool","cope","copy","cord","core","cork","corn","cost","cosy","coup","cove","crab","crew","crib","crop","crow","cube","cult","curb","cure","curl","cute","dale","dame","damn","damp","dare","dark","dart","dash","data","date","dawn","days","dead","deaf","deal","dean","dear","debt","deck","deed","deem","deep","deer","dent","deny","desk","dial","dice","died","diet","dine","dire","dirt","disc","dish","disk","dive","dock","does","doll","dome","done","doom","door","dose","dote","down","dose","drag","draw","drew","drip","drop","drug","drum","dual","duck","dude","duel","duet","duke","dull","dumb","dump","dune","dunk","dust","duty","dyed","each","earl","earn","ease","east","easy","edge","else","emit","ends","even","ever","evil","exam","exit","face","fact","fade","fail","fair","fake","fall","fame","fang","fare","farm","fast","fate","fawn","fear","feat","feed","feel","feet","fell","felt","fern","file","fill","film","find","fine","fire","firm","fish","fist","five","flag","flame","flap","flat","flaw","flea","fled","flee","flew","flip","flit","flow","foam","foil","fold","folk","fond","font","food","fool","foot","ford","fore","fork","form","fort","foul","four","fowl","free","frog","from","fuel","full","fume","fund","fuse","fuss","gain","gale","game","gang","gate","gave","gaze","gear","gene","gets","gift","girl","give","glad","glee","glen","glow","glue","goal","goat","goes","gold","golf","gone","good","gore","gown","grab","gram","gray","grew","grey","grid","grim","grin","grip","grow","gulf","gust","guts","hack","hail","hair","hale","half","hall","halt","hand","hang","hank","hard","hare","harm","harp","hash","hate","haul","have","hawk","haze","hazy","head","heal","heap","hear","heat","heed","heel","held","hell","helm","help","hemp","herb","herd","here","hero","hide","high","hike","hill","hilt","hint","hire","hold","hole","holy","home","hone","hood","hook","hoop","hope","horn","hose","host","hour","howl","huge","hulk","hull","hump","hung","hunt","hurt","hush","hymn","idea","idle","inch","info","iron","isle","item","jack","jade","jail","jazz","jean","jerk","jest","jobs","join","joke","jolt","jump","june","junk","jury","just","keel","keen","keep","kent","kept","kick","kill","kind","king","kiss","kite","knee","knew","knit","knob","knot","know","lace","lack","lacy","laid","lair","lake","lamb","lame","lamp","land","lane","lard","lark","last","late","lava","lawn","lead","leaf","leak","lean","leap","left","lend","lens","less","liar","lice","lick","lied","lies","life","lift","like","limb","lime","limp","line","link","lint","lion","lips","list","live","load","loaf","loan","lock","loft","logo","lone","long","look","loom","loop","lord","lore","lose","loss","lost","lots","loud","love","luck","lump","lung","lure","lurk","lush","lust","made","maid","mail","main","make","male","mall","mane","many","maps","mare","mark","mars","mask","mass","mast","mate","math","maze","meal","mean","meat","meek","meet","melt","memo","mend","menu","mere","mesh","mess","mice","mild","mile","milk","mill","mind","mine","mint","miss","mist","moan","moat","mock","mode","mold","mole","molt","monk","mood","moon","moor","more","morn","moss","most","moth","move","much","muck","mule","muse","must","mute","myth","nail","name","nape","navy","near","neat","neck","need","nest","news","next","nice","nick","nine","node","none","nook","noon","norm","nose","note","noun","nude","nuke","null","numb","oath","obey","odds","okay","omen","omit","once","only","onto","open","oral","oven","over","owed","owns","pace","pack","pact","page","paid","pail","pain","pair","pale","palm","pane","pant","park","part","pass","past","path","pave","pawn","peak","pear","peck","peek","peel","peer","pelt","perk","pest","pick","pier","pike","pile","pill","pine","pink","pint","pipe","piss","pith","pity","plan","play","plea","plod","plot","plow","ploy","plug","plum","plus","pock","poem","poet","poke","pole","poll","polo","pond","pony","pool","poor","pope","pork","porn","port","pose","post","pour","pout","pray","prep","prey","prim","prod","prom","prop","prow","pull","pulp","pump","punk","pure","push","quit","race","rack","raft","rage","raid","rail","rain","rake","ramp","rang","rank","rant","rape","rare","rash","rasp","rate","rave","rays","read","real","ream","reap","rear","redo","reed","reef","reel","rely","rend","rent","rest","rice","rich","ride","rift","rind","ring","riot","ripe","rise","risk","rite","road","roam","roar","robe","rock","rode","role","roll","roof","room","root","rope","rose","rosy","rout","rove","rude","ruin","rule","rump","rung","runt","rush","rust","sack","safe","sage","said","sail","sake","sale","salt","same","sand","sane","sang","sank","sash","save","says","scam","scan","seal","seam","sear","seas","seat","sect","seed","seek","seem","seen","self","sell","semi","send","sent","sept","sets","sewn","shed","shim","shin","ship","shoe","shoo","shop","shot","show","shut","sick","side","sift","sigh","sign","silk","sill","sing","sink","site","sits","size","skim","skin","skip","slab","slam","slap","slat","slay","sled","slew","slid","slim","slit","slob","slop","slot","slow","slug","slum","slur","smog","snap","snip","snob","snow","snub","snug","soak","soap","soar","sock","soda","sofa","soft","soil","sold","sole","some","song","sons","soon","soot","sore","sort","soul","soup","sour","span","spar","spat","spec","sped","spin","spit","spot","spun","spur","stab","stag","star","stay","stem","step","stew","stir","stop","stub","stud","stun","such","suck","sued","suit","sulk","sung","sunk","sure","surf","swan","swap","sway","swim","swum","tabs","tack","tact","tail","take","tale","talk","tall","tame","tang","tank","tape","taps","tart","task","team","tear","teem","tell","temp","tend","tent","term","test","text","than","that","them","then","they","thin","this","thus","tick","tide","tidy","tied","tier","tile","till","tilt","time","tint","tiny","tips","tire","toad","toes","toil","told","toll","tomb","tone","took","tool","tops","tore","torn","tort","toss","tour","town","trap","tray","tree","trek","trim","trio","trip","trod","trot","true","tuba","tube","tuck","tune","turf","turn","twig","twin","type","ugly","undo","unit","unto","upon","urge","used","user","uses","vain","vale","vane","vary","vase","vast","veer","veil","vein","vent","verb","vest","veto","vice","view","vile","vine","visa","void","volt","vote","wade","wage","wail","wait","wake","walk","wall","wand","want","ward","warm","warn","warp","wart","wary","wash","wasp","wave","wavy","waxy","ways","weak","wean","wear","weed","week","weep","weld","well","went","wept","were","west","what","when","whim","whip","whom","wick","wide","wife","wild","will","wilt","wimp","wind","wine","wing","wink","wipe","wire","wise","wish","with","woke","wolf","womb","wood","wool","word","wore","work","worm","worn","wrap","wren","yard","yawn","year","yell","your","zeal","zero","zest","zinc","zone","zoom"
+        ]);
+
+        // Daily puzzles - seeded by date
+        const PUZZLES = [
+            { start: "cold", end: "warm", par: 4 },
+            { start: "head", end: "tail", par: 5 },
+            { start: "love", end: "hate", par: 4 },
+            { start: "slow", end: "fast", par: 5 },
+            { start: "dark", end: "dawn", par: 3 },
+            { start: "fish", end: "bird", par: 5 },
+            { start: "wine", end: "beer", par: 4 },
+            { start: "fire", end: "water", par: 6 },
+            { start: "work", end: "play", par: 6 },
+            { start: "sick", end: "well", par: 4 },
+            { start: "hide", end: "seek", par: 4 },
+            { start: "lost", end: "find", par: 5 },
+            { start: "rise", end: "fall", par: 5 },
+            { start: "dawn", end: "dusk", par: 3 },
+            { start: "rain", end: "snow", par: 5 },
+            { start: "cake", end: "wine", par: 4 },
+            { start: "moon", end: "star", par: 4 },
+            { start: "book", end: "read", par: 4 },
+            { start: "hand", end: "foot", par: 5 },
+            { start: "soft", end: "hard", par: 4 },
+            { start: "male", end: "girl", par: 5 },
+            { start: "hero", end: "zero", par: 1 },
+            { start: "sand", end: "wave", par: 4 },
+            { start: "mile", end: "yard", par: 5 },
+            { start: "lamp", end: "bulb", par: 5 },
+            { start: "ship", end: "dock", par: 4 },
+            { start: "wolf", end: "lamb", par: 5 },
+            { start: "dine", end: "cook", par: 5 },
+            { start: "tree", end: "leaf", par: 4 },
+            { start: "seed", end: "grow", par: 5 },
+            { start: "path", end: "road", par: 3 }
+        ];
+
+        // Game state
+        let gameState = {
+            startWord: "",
+            endWord: "",
+            par: 0,
+            currentWord: "",
+            words: [],
+            completed: false,
+            puzzleNumber: 0
+        };
+
+        // Get today's puzzle
+        function getTodaysPuzzle() {
+            const startDate = new Date('2025-01-01');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const diffTime = Math.abs(today - startDate);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const puzzleIndex = diffDays % PUZZLES.length;
+            return { puzzle: PUZZLES[puzzleIndex], number: diffDays + 1 };
+        }
+
+        // Initialize game
+        function initGame() {
+            const { puzzle, number } = getTodaysPuzzle();
+            
+            // Check for saved state
+            const saved = localStorage.getItem('laddle_state');
+            const savedDate = localStorage.getItem('laddle_date');
+            const today = new Date().toDateString();
+
+            if (saved && savedDate === today) {
+                gameState = JSON.parse(saved);
+            } else {
+                gameState = {
+                    startWord: puzzle.start,
+                    endWord: puzzle.end,
+                    par: puzzle.par,
+                    currentWord: puzzle.start,
+                    words: [puzzle.start],
+                    completed: false,
+                    puzzleNumber: number
+                };
+                localStorage.setItem('laddle_date', today);
+            }
+
+            renderLadder();
+            updateStats();
+            
+            if (gameState.completed) {
+                showWinScreen();
+            } else {
+                prefillInput();
+            }
+
+            // Show help on first visit
+            if (!localStorage.getItem('laddle_visited')) {
+                showHelp();
+                localStorage.setItem('laddle_visited', 'true');
+            }
+        }
+
+        // Render the word ladder
+        function renderLadder() {
+            const ladder = document.getElementById('ladder');
+            ladder.innerHTML = '';
+
+            // Start word
+            ladder.appendChild(createWordRow(gameState.startWord, 'start'));
+
+            // Intermediate words
+            for (let i = 1; i < gameState.words.length; i++) {
+                ladder.appendChild(createConnector());
+                const prevWord = gameState.words[i - 1];
+                ladder.appendChild(createWordRow(gameState.words[i], 'filled', prevWord));
+            }
+
+            // End word (if not reached)
+            if (!gameState.completed) {
+                ladder.appendChild(createConnector());
+                ladder.appendChild(createWordRow(gameState.endWord, 'end'));
+            }
+        }
+
+        // Create a word row
+        function createWordRow(word, type, prevWord = null) {
+            const row = document.createElement('div');
+            row.className = 'word-row';
+
+            for (let i = 0; i < 4; i++) {
+                const box = document.createElement('div');
+                box.className = 'letter-box ' + type;
+                box.textContent = word[i];
+
+                // Highlight changed letter
+                if (prevWord && word[i] !== prevWord[i]) {
+                    box.classList.add('changed');
+                }
+
+                row.appendChild(box);
+            }
+
+            return row;
+        }
+
+        // Create connector
+        function createConnector() {
+            const conn = document.createElement('div');
+            conn.className = 'connector';
+            return conn;
+        }
+
+        // Prefill input with current word
+        function prefillInput() {
+            const inputs = document.querySelectorAll('.letter-input');
+            const currentWord = gameState.words[gameState.words.length - 1];
+            
+            inputs.forEach((input, i) => {
+                input.value = currentWord[i];
+            });
+            
+            inputs[0].focus();
+            inputs[0].select();
+        }
+
+        // Setup input handlers
+        function setupInputs() {
+            const inputs = document.querySelectorAll('.letter-input');
+
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value.toUpperCase();
+                    e.target.value = value;
+
+                    if (value && index < 3) {
+                        inputs[index + 1].focus();
+                        inputs[index + 1].select();
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                    if (e.key === 'Enter') {
+                        submitWord();
+                    }
+                    if (e.key === 'ArrowLeft' && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                    if (e.key === 'ArrowRight' && index < 3) {
+                        inputs[index + 1].focus();
+                    }
+                });
+
+                input.addEventListener('focus', () => {
+                    input.select();
+                });
+            });
+        }
+
+        // Get input word
+        function getInputWord() {
+            const inputs = document.querySelectorAll('.letter-input');
+            return Array.from(inputs).map(i => i.value.toLowerCase()).join('');
+        }
+
+        // Clear input
+        function clearInput() {
+            const inputs = document.querySelectorAll('.letter-input');
+            inputs.forEach(i => i.value = '');
+            inputs[0].focus();
+        }
+
+        // Show message
+        function showMessage(text, type = 'hint') {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = 'message ' + type;
+        }
+
+        // Count letter differences
+        function countDifferences(word1, word2) {
+            let diff = 0;
+            for (let i = 0; i < 4; i++) {
+                if (word1[i] !== word2[i]) diff++;
+            }
+            return diff;
+        }
+
+        // Submit word
+        function submitWord() {
+            const word = getInputWord();
+            const inputs = document.querySelectorAll('.letter-input');
+            const prevWord = gameState.words[gameState.words.length - 1];
+
+            // Validate length
+            if (word.length !== 4) {
+                showMessage('Enter all 4 letters', 'error');
+                inputs.forEach(i => i.classList.add('error'));
+                setTimeout(() => inputs.forEach(i => i.classList.remove('error')), 400);
+                return;
+            }
+
+            // Check if valid word
+            if (!WORDS.has(word)) {
+                showMessage('Not in word list', 'error');
+                inputs.forEach(i => i.classList.add('error'));
+                setTimeout(() => inputs.forEach(i => i.classList.remove('error')), 400);
+                return;
+            }
+
+            // Check if same as previous
+            if (word === prevWord) {
+                showMessage('Same as current word', 'error');
+                return;
+            }
+
+            // Check if only one letter changed
+            const diff = countDifferences(word, prevWord);
+            if (diff !== 1) {
+                showMessage(`Change exactly 1 letter (you changed ${diff})`, 'error');
+                inputs.forEach(i => i.classList.add('error'));
+                setTimeout(() => inputs.forEach(i => i.classList.remove('error')), 400);
+                return;
+            }
+
+            // Valid move!
+            gameState.words.push(word);
+            gameState.currentWord = word;
+            saveState();
+            renderLadder();
+            updateStats();
+
+            // Check for win
+            if (word === gameState.endWord) {
+                gameState.completed = true;
+                saveState();
+                showWinScreen();
+            } else {
+                prefillInput();
+                const toEnd = countDifferences(word, gameState.endWord);
+                showMessage(`${toEnd} letter${toEnd !== 1 ? 's' : ''} away from target`, 'hint');
+            }
+        }
+
+        // Save state
+        function saveState() {
+            localStorage.setItem('laddle_state', JSON.stringify(gameState));
+        }
+
+        // Update stats display
+        function updateStats() {
+            const stats = document.getElementById('stats');
+            const steps = gameState.words.length - 1;
+            stats.textContent = `Puzzle #${gameState.puzzleNumber} · Steps: ${steps} · Par: ${gameState.par}`;
+        }
+
+        // Show win screen
+        function showWinScreen() {
+            document.getElementById('inputSection').style.display = 'none';
+            document.getElementById('message').style.display = 'none';
+            
+            const winScreen = document.getElementById('winScreen');
+            const steps = gameState.words.length - 1;
+            
+            document.getElementById('finalScore').textContent = steps;
+            
+            let parText = '';
+            const diff = steps - gameState.par;
+            if (diff < 0) parText = `${Math.abs(diff)} under par! 🎉`;
+            else if (diff === 0) parText = 'Par! Nice work!';
+            else parText = `${diff} over par`;
+            document.getElementById('parInfo').textContent = parText;
+
+            // Create share text
+            const shareText = generateShareText();
+            document.getElementById('shareText').textContent = shareText;
+
+            // Countdown to next puzzle
+            updateCountdown();
+
+            winScreen.classList.add('show');
+        }
+
+        // Generate share text
+        function generateShareText() {
+            const steps = gameState.words.length - 1;
+            const diff = steps - gameState.par;
+            let result = `Laddle #${gameState.puzzleNumber}\n`;
+            result += `${gameState.startWord.toUpperCase()} → ${gameState.endWord.toUpperCase()}\n`;
+            result += `${steps} steps (par ${gameState.par})\n\n`;
+
+            // Visual representation
+            for (let i = 1; i < gameState.words.length; i++) {
+                const prev = gameState.words[i - 1];
+                const curr = gameState.words[i];
+                let line = '';
+                for (let j = 0; j < 4; j++) {
+                    line += prev[j] !== curr[j] ? '🟩' : '⬜';
+                }
+                result += line + '\n';
+            }
+
+            return result.trim();
+        }
+
+        // Copy share text
+        function copyShare() {
+            const text = document.getElementById('shareText').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showMessage('Copied to clipboard!', 'hint');
+                document.getElementById('message').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('message').style.display = 'none';
+                }, 2000);
+            });
+        }
+
+        // Update countdown
+        function updateCountdown() {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            
+            const diff = tomorrow - now;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('countdown').textContent = 
+                `Next puzzle in ${hours}h ${minutes}m ${seconds}s`;
+
+            if (!gameState.completed) return;
+            setTimeout(updateCountdown, 1000);
+        }
+
+        // Help modal
+        function showHelp() {
+            document.getElementById('helpModal').classList.add('show');
+        }
+
+        function hideHelp() {
+            document.getElementById('helpModal').classList.remove('show');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('helpModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('helpModal')) {
+                hideHelp();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initGame();
+            setupInputs();
+        });
+    </script>
+</body>
+</html>
